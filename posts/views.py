@@ -14,6 +14,7 @@ class PostListView(generics.ListCreateAPIView):
             queryset = queryset.filter(language=language)
         return queryset
 
-class PostDetailView(generics.RetrieveAPIView):
+class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
