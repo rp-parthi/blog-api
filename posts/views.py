@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions
 from .models import Post
+from .permissions import IsOwnerOrReadOnly
 from .serializers import PostSerializer
 
 
@@ -21,4 +22,4 @@ class PostListView(generics.ListCreateAPIView):
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
