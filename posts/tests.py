@@ -13,15 +13,20 @@ class PostAPITest(APITestCase):
         self.ta_post = Post.objects.create(title="தமிழ்", body="தமிழ் உடல்", author=self.user2, language="ta")
 
     def test_list_is_public(self):
+        # Arrange
         url = reverse("post-list")
+        # Act
         response = self.client.get(url)
+        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
     def test_create_requires_login(self):
         url = reverse("post-list")
         payload = {"title": "New", "body": "New body"}
+
         response = self.client.post(url, payload, format="json")
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Post.objects.count(), 2)
 
@@ -29,7 +34,9 @@ class PostAPITest(APITestCase):
         self.client.force_authenticate(user=self.user1)
         url = reverse("post-list")
         payload = {"title": "New", "body": "New body"}
+
         response = self.client.post(url, payload, format="json")
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Post.objects.count(), 3)
 
@@ -37,33 +44,42 @@ class PostAPITest(APITestCase):
         self.client.force_authenticate(user=self.user1)
         url = reverse("post-list")
         payload = {"body": "No title but body"}
+
         response = self.client.post(url, payload, format="json")
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("title", response.data)
 
     def test_language_filter(self):
         url = reverse("post-list")
         payload = {"language": "ta"}
+
         response = self.client.get(url, payload)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["language"], "ta")
 
     def test_reject_delete_without_login(self):
         url = reverse("post-detail", kwargs={"pk": self.ta_post.pk})
+
         response = self.client.delete(url)
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(Post.objects.filter(pk=self.ta_post.pk).exists())
 
     def test_post_not_found(self):
         url = reverse("post-detail", kwargs={"pk": 999})
+
         response = self.client.get(url)
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_user1_can_rename_own_post(self):
         self.client.force_authenticate(user=self.user1)
         url = reverse("post-detail", kwargs={"pk": self.en_post.pk})
         payload = {"title": "Renamed"}
+
         response = self.client.patch(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -74,6 +90,7 @@ class PostAPITest(APITestCase):
         self.client.force_authenticate(user=self.user1)
         url = reverse("post-detail", kwargs={"pk": self.ta_post.pk})
         payload = {"title": "Hacked"}
+
         response = self.client.patch(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -93,6 +110,7 @@ class PostAPITest(APITestCase):
         self.client.force_authenticate(user=self.user1)
         url = reverse("post-list")
         payload = {"title": "Mine", "body": "text", "author": "tester2"}
+
         response = self.client.post(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
